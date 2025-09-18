@@ -1,10 +1,12 @@
 import streamlit as st
 import numpy as np
+import wave
 from scipy.io import wavfile
 import plotly.graph_objects as go
 from scipy.signal import spectrogram
 import tempfile
 import os
+import math
 
 # -----------------------------
 # Helper functions
@@ -148,7 +150,7 @@ uploaded_file = st.file_uploader("Choose a WAV file", type=['wav'])
 if not st.session_state.puzzle_unlocked:
     st.subheader("🌱 Unlock the Sustainability Puzzle")
 
-st.markdown("""
+    st.markdown("""
 Two projects slash the city’s carbon footprint — **Eco-Park** 🌳 and **Green Transit** 🚊.  
 Your task is to find their exact yearly carbon reductions.
 
@@ -158,7 +160,6 @@ Your task is to find their exact yearly carbon reductions.
 - Each project’s contribution is a clean, round **multiple of one thousand tons**.  
 - When their contributions are **combined in just the right way**, they form a **seven-digit number — fifteen million —** celebrated as the city’s “sustainability marker.”  
 - They share a **common building block of 1,000 tons**, meaning they are as independent as possible but built from the same unit.  
-- Each project’s value (when measured in thousands) is a **prime number** and belongs to the elite set {1, 3, 5, 7}.  
 - **Eco-Park** is deliberately kept smaller, contributing **less than 60%** of the total reduction — its partner does the heavier lifting.  
 - The sum of their “thousands” equals a **small, satisfying even number** often associated with symmetry and balance.  
 
@@ -167,20 +168,20 @@ Your task is to find their exact yearly carbon reductions.
 Enter your answers below to unlock the hidden sustainability message!** 🔓
 """)
 
-f1 = st.number_input("Enter Eco-Park Reduction $c_1$ (metric tons/year):", step=1.0, format="%.0f", key="f1")
-f2 = st.number_input("Enter Green Transit Reduction $c_2$ (metric tons/year):", step=1.0, format="%.0f", key="f2")
+    f1 = st.number_input("Enter Eco-Park Reduction $c_1$ (metric tons/year):", step=1.0, format="%.0f", key="f1")
+    f2 = st.number_input("Enter Green Transit Reduction $c_2$ (metric tons/year):", step=1.0, format="%.0f", key="f2")
 
-if st.button("Submit Answer"):
-    correct_sorted = sorted([3000, 5000])
-    user_sorted = sorted([int(round(f1)), int(round(f2))])
+    if st.button("Submit Answer"):
+        correct_sorted = sorted([3000, 5000])
+        user_sorted = sorted([int(round(f1)), int(round(f2))])
 
-    if user_sorted == correct_sorted:
-        st.session_state.puzzle_unlocked = True
-        st.success("✅ Correct! Sliders unlocked and the sustainability message is revealed!")
-        st.balloons()
-        st.rerun()
-    else:
-        st.error("❌ Incorrect. Try again!")
+        if user_sorted == correct_sorted:
+            st.session_state.puzzle_unlocked = True
+            st.success("✅ Correct! Sliders unlocked and the sustainability message is revealed!")
+            st.balloons()
+            st.rerun()
+        else:
+            st.error("❌ Incorrect. Try again!")
 
 # -----------------
 # PHASE 2: SPECTROGRAM
