@@ -1,12 +1,10 @@
 import streamlit as st
 import numpy as np
-import wave
 from scipy.io import wavfile
 import plotly.graph_objects as go
 from scipy.signal import spectrogram
 import tempfile
 import os
-import math
 
 # -----------------------------
 # Helper functions
@@ -147,9 +145,6 @@ uploaded_file = st.file_uploader("Choose a WAV file", type=['wav'])
 # -----------------
 # PHASE 1: TOUGH PUZZLE
 # -----------------
-# -----------------
-# PHASE 1: TOUGH PUZZLE
-# -----------------
 if not st.session_state.puzzle_unlocked:
     st.subheader("🌱 Unlock the Sustainability Puzzle")
 
@@ -161,14 +156,15 @@ Your task is to find their exact yearly carbon reductions.
 
 - Together, both projects erase **exactly eight thousand tons of CO₂** from the atmosphere every year.  
 - Each project’s contribution is a clean, round **multiple of one thousand tons**.  
-- Their combined effect is special: **if you multiply their contributions, you get a seven-digit number** that the city celebrates as its “sustainability marker.”  
+- When their contributions are **combined in just the right way**, they form a **seven-digit number — fifteen million —** celebrated as the city’s “sustainability marker.”  
 - They share a **common building block of 1,000 tons**, meaning they are as independent as possible but built from the same unit.  
 - Each project’s value (when measured in thousands) is a **prime number** and belongs to the elite set {1, 3, 5, 7}.  
 - **Eco-Park** is deliberately kept smaller, contributing **less than 60%** of the total reduction — its partner does the heavier lifting.  
 - The sum of their “thousands” equals a **small, satisfying even number** often associated with symmetry and balance.  
 
-**Your Mission:**  
-Crack the numbers for **Eco-Park ($c_1$)** and **Green Transit ($c_2$)** to unlock the hidden message! 🔓
+### 🧠 Your Mission:
+**Unravel the mystery and determine the exact carbon reductions for both projects.  
+Enter your answers below to unlock the hidden sustainability message!** 🔓
 """)
 
 f1 = st.number_input("Enter Eco-Park Reduction $c_1$ (metric tons/year):", step=1.0, format="%.0f", key="f1")
@@ -186,3 +182,28 @@ if st.button("Submit Answer"):
     else:
         st.error("❌ Incorrect. Try again!")
 
+# -----------------
+# PHASE 2: SPECTROGRAM
+# -----------------
+if uploaded_file is not None and st.session_state.puzzle_unlocked:
+    audio, sample_rate = load_audio_from_upload(uploaded_file)
+
+    if audio is not None and sample_rate is not None:
+        st.success(f"✅ Audio loaded! Duration: {len(audio)/sample_rate:.2f}s | Sample Rate: {sample_rate:,} Hz")
+        st.audio(uploaded_file, format="audio/wav")
+
+        freq_min = st.slider("Minimum Frequency (Hz)", 0, 199000, 0, 1000)
+        freq_max = st.slider("Maximum Frequency (Hz)", 1000, 200000, 200000, 1000)
+
+        if freq_min < freq_max:
+            fig, is_in_target_range = plot_interactive_spectrogram(audio, sample_rate, freq_min, freq_max)
+            if fig:
+                st.plotly_chart(fig, use_container_width=True)
+
+                is_hidden, hidden_chars, hidden_peak_freqs = detect_hidden_message(audio, sample_rate)
+                perfect_range = (freq_min <= 2700 and freq_max >= 5300)
+
+                if perfect_range and is_in_target_range:
+                    if is_hidden and hidden_chars > 0:
+                        st.success("🎉 JACKPOT! COMPLETE MESSAGE DECODED!")
+                        st.balloons()
